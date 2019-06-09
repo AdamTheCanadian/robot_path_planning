@@ -2,8 +2,8 @@ import matplotlib.pyplot as plt
 from matplotlib import colors
 import numpy as np
 
-rows = 10
-cols = 10
+rows = 100
+cols = 100
 data = np.zeros(rows * cols).reshape(rows, cols)
 data[1, 1] = 2
 data[9, 9] = 3
@@ -18,9 +18,10 @@ fig, ax = plt.subplots()
 ax.imshow(data, cmap=cmap, norm=norm)
 
 # draw gridlines
-ax.grid(which='major', axis='both', linestyle='-', color='k', linewidth=2)
+ax.grid(which='major', axis='both', linestyle='-', color='k', linewidth=1)
 ax.set_xticks(np.arange(0.5, rows, 1));
 ax.set_yticks(np.arange(0.5, cols, 1));
 plt.tick_params(axis='both', labelsize=0, length = 0)
-plt.savefig('images/grid.png')
+fig.set_size_inches((8.5, 11), forward=False)
+plt.savefig('images/grid.png', dpi=500)
 plt.show()
