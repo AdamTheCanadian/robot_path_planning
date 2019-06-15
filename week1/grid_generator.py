@@ -24,14 +24,42 @@ def plot_grid(data, saveImageName):
     plt.tick_params(axis='both', labelsize=0, length = 0)
     # fig.set_size_inches((8.5, 11), forward=False)
     plt.savefig(saveImageName + ".png", dpi=500)
+
+def generate_moves(grid, startX, startY):
+    num_rows = np.size(grid, 0)
+    num_cols = np.size(grid, 1)
+
+    # Currently do not support moving diagonally so there is a max
+    # of 4 possible moves, up, down, left, right.
+    possible_moves = np.zeros(8, dtype=int).reshape(4, 2)
+    # Move up
+    possible_moves[0, 0] = startX - 1
+    possible_moves[0, 1] = startY
+    # Move down
+    possible_moves[1, 0] = startX + 1
+    possible_moves[1, 1] = startY
+    # Move left
+    possible_moves[2, 0] = startX
+    possible_moves[2, 1] = startY - 1
+    # Move right
+    possible_moves[3, 0] = startX
+    possible_moves[3, 1] = startY + 1
+    # Change the cell value if the move is valid
+    for row in possible_moves:
+        if row[0] < 0 or row[0] >= num_rows:
+            continue
+        if row[1] < 0 or row[1] >= num_cols:
+            continue
+        grid[row[0], row[1]] = MOVE_CELL
     
+
 if __name__ == "__main__":
     rows = 20
     cols = 20
     # Randomly create 20 different grids
     for i in range(0, 20):
 
-        data = np.zeros(rows * cols).reshape(rows, cols)
+        data = np.zeros(rows * cols, dtype=int).reshape(rows, cols)
         start_x = random.randint(0, rows - 1)
         start_y = random.randint(0, cols - 1)
         data[start_x, start_y] = START_CELL
@@ -45,4 +73,6 @@ if __name__ == "__main__":
         goal_y = random.randint(0, cols - 1)
 
         data[goal_x, goal_y] = GOAL_CELL
+        generate_moves(data, start_x, start_y)
+
         plot_grid(data, "week1/images/grid_" + str(i))
