@@ -50,8 +50,21 @@ def generate_moves(grid, startX, startY):
             continue
         if row[1] < 0 or row[1] >= num_cols:
             continue
-        grid[row[0], row[1]] = MOVE_CELL
+        if grid[row[0], row[1]] == 0:
+            grid[row[0], row[1]] = MOVE_CELL
     
+def generate_obstacles(grid, numberOfObstacles):
+
+    num_rows = np.size(grid, 0)
+    num_cols = np.size(grid, 1)
+    for i in range(0, numberOfObstacles):
+        x = random.randint(0, num_rows - 1)
+        y = random.randint(0, num_cols - 1)
+        while grid[x, y] != 0:
+            x = random.randint(0, num_rows - 1)
+            y = random.randint(0, num_cols - 1)
+
+        grid[x, y] = OBSTACLE_CELL
 
 if __name__ == "__main__":
     rows = 20
@@ -73,6 +86,6 @@ if __name__ == "__main__":
         goal_y = random.randint(0, cols - 1)
 
         data[goal_x, goal_y] = GOAL_CELL
+        generate_obstacles(data, 10)
         generate_moves(data, start_x, start_y)
-
         plot_grid(data, "week1/images/grid_" + str(i))
