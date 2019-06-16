@@ -15,12 +15,14 @@ norm = colors.BoundaryNorm(bounds, cmap.N)
 
 def plot_grid(data, saveImageName):
 
+    num_rows = np.size(data, 0)
+    num_cols = np.size(data, 1)
     fig, ax = plt.subplots()
     ax.imshow(data, cmap=cmap, norm=norm)
     # draw gridlines
     ax.grid(which='major', axis='both', linestyle='-', color='k', linewidth=1)
-    ax.set_xticks(np.arange(0.5, rows, 1));
-    ax.set_yticks(np.arange(0.5, cols, 1));
+    ax.set_xticks(np.arange(0.5, num_rows, 1));
+    ax.set_yticks(np.arange(0.5, num_cols, 1));
     plt.tick_params(axis='both', which='both', bottom=False, left=False, labelbottom=False, labelleft=False)
     # fig.set_size_inches((8.5, 11), forward=False)
     plt.savefig(saveImageName + ".png", dpi=500)
@@ -52,7 +54,10 @@ def generate_moves(grid, startX, startY):
             continue
         if grid[row[0], row[1]] == 0:
             grid[row[0], row[1]] = MOVE_CELL
-    
+
+def generate_grid(rows, columns):
+    return np.zeros(rows * columns, dtype=int).reshape(rows, columns)
+
 def generate_obstacles(grid, numberOfObstacles):
 
     num_rows = np.size(grid, 0)
@@ -72,7 +77,7 @@ if __name__ == "__main__":
     # Randomly create 20 different grids
     for i in range(0, 20):
 
-        data = np.zeros(rows * cols, dtype=int).reshape(rows, cols)
+        data = generate_grid(rows, cols)
         start_x = random.randint(0, rows - 1)
         start_y = random.randint(0, cols - 1)
         data[start_x, start_y] = START_CELL
