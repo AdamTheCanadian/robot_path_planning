@@ -8,6 +8,8 @@ OBSTACLE_CELL = 1
 START_CELL = 2
 GOAL_CELL = 3
 MOVE_CELL = 4
+direction_row = np.array([-1, 1, 0, 0])
+direction_col = np.array([0, 0, 1, -1])
 # create discrete colormap
 cmap = colors.ListedColormap(['white', 'black', 'green', 'red', 'blue'])
 bounds = [EMPTY_CELL, OBSTACLE_CELL, START_CELL, GOAL_CELL, MOVE_CELL ,MOVE_CELL + 1]
@@ -31,29 +33,18 @@ def generate_moves(grid, startX, startY):
     num_rows = np.size(grid, 0)
     num_cols = np.size(grid, 1)
 
-    # Currently do not support moving diagonally so there is a max
-    # of 4 possible moves, up, down, left, right.
-    possible_moves = np.zeros(8, dtype=int).reshape(4, 2)
-    # Move up
-    possible_moves[0, 0] = startX - 1
-    possible_moves[0, 1] = startY
-    # Move down
-    possible_moves[1, 0] = startX + 1
-    possible_moves[1, 1] = startY
-    # Move left
-    possible_moves[2, 0] = startX
-    possible_moves[2, 1] = startY - 1
-    # Move right
-    possible_moves[3, 0] = startX
-    possible_moves[3, 1] = startY + 1
-    # Change the cell value if the move is valid
-    for row in possible_moves:
-        if row[0] < 0 or row[0] >= num_rows:
+    # Theres only 4 possible moves, up down left right
+    for i in range(0, 4):
+
+        new_x = startX + direction_row[i]
+        new_y = startY + direction_col[i]
+
+        if new_x < 0 or new_y < 0:
             continue
-        if row[1] < 0 or row[1] >= num_cols:
+        if new_x >= num_rows or new_y >= num_cols:
             continue
-        if grid[row[0], row[1]] == 0:
-            grid[row[0], row[1]] = MOVE_CELL
+        if grid[new_x, new_y] == 0:
+            grid[new_x, new_y] = MOVE_CELL
 
 def generate_grid(rows, columns):
     return np.zeros(rows * columns, dtype=int).reshape(rows, columns)
