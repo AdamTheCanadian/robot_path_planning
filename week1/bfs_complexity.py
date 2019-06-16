@@ -14,7 +14,7 @@ import numpy as np
 # 100x100x100x100x100
 # 100x100x100x100x100x100
 
-number_of_cells_in_one_dimension = np.arange(1001)
+number_of_cells_in_one_dimension = np.arange(101)
 max_dimensions = 6
 min_dimensions = 2
 plt.figure()
