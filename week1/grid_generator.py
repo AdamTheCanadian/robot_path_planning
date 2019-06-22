@@ -8,12 +8,25 @@ OBSTACLE_CELL = 1
 START_CELL = 2
 GOAL_CELL = 3
 MOVE_CELL = 4
+VISITED_CELL = 5
 direction_row = np.array([-1, 1, 0, 0])
 direction_col = np.array([0, 0, 1, -1])
 # create discrete colormap
-cmap = colors.ListedColormap(['white', 'black', 'green', 'red', 'blue'])
-bounds = [EMPTY_CELL, OBSTACLE_CELL, START_CELL, GOAL_CELL, MOVE_CELL ,MOVE_CELL + 1]
+cmap = colors.ListedColormap(['white', 'black', 'green', 'red', 'blue', 'cyan'])
+bounds = [EMPTY_CELL, OBSTACLE_CELL, START_CELL, GOAL_CELL, MOVE_CELL, VISITED_CELL, VISITED_CELL + 1]
 norm = colors.BoundaryNorm(bounds, cmap.N)
+
+def show_grid(grid):
+    num_rows = np.size(grid, 0)
+    num_cols = np.size(grid, 1)
+    fig, ax = plt.subplots()
+    ax.imshow(grid, cmap=cmap, norm=norm)
+    # draw gridlines
+    ax.grid(which='major', axis='both', linestyle='-', color='k', linewidth=1)
+    ax.set_xticks(np.arange(0.5, num_rows, 1));
+    ax.set_yticks(np.arange(0.5, num_cols, 1));
+    plt.tick_params(axis='both', which='both', bottom=False, left=False, labelbottom=False, labelleft=False)
+    plt.show()
 
 def plot_grid(data, saveImageName):
 
@@ -28,6 +41,7 @@ def plot_grid(data, saveImageName):
     plt.tick_params(axis='both', which='both', bottom=False, left=False, labelbottom=False, labelleft=False)
     # fig.set_size_inches((8.5, 11), forward=False)
     plt.savefig(saveImageName + ".png", dpi=500)
+    plt.close()
 
 def generate_moves(grid, startX, startY):
     num_rows = np.size(grid, 0)
