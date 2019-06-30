@@ -2,120 +2,115 @@ import numpy as np
 import grid_tools
 import queue
 
-# Global count that is incremented every time an image is saved
-image_number = 0
-# Global grid, only made global to avoid passing in every function
-grid = None
-# Array to keep a record if the cell was visited
-visted_flags = None
-number_of_rows = 0
-number_of_cols = 0
-# Index of where the start position is
-start_row = -1
-start_col = -1
-# Index of where the goal position is
-goal_row = -1
-goal_col = -1
+import grid_2d
+import grid_cell_2d
 # For holding the cells that need to be checked
-row_queue = queue.Queue()
-col_queue = queue.Queue()
+cell_queue = queue.Queue()
 
-def move_8_directions():
-    row_direction_vector = np.array([-1, 1, 0, 0, -1, -1, 1, 1])
-    col_direction_vector = np.array([0, 0, 1, -1, -1, 1, 1, -1])
+image_count = 0
 
-def move_4_directions(currentRow, currentCol):
+def move_8_directions(grid, currentCell):
+    global image_count
+    y_direction_vector = np.array([-1, 1, 0, 0, -1, -1, 1, 1])
+    x_direction_vector = np.array([0, 0, 1, -1, -1, 1, 1, -1])
+    for i in range(0, 8):
+        new_x = currentCell.x + x_direction_vector[i]
+        new_y = currentCell.y + y_direction_vector[i]
+        if new_x < 0 or new_y < 0:
+            continue
+        if new_x >= grid.num_cols or new_y >= grid.num_rows:
+            continue
 
-    row_direction_vector = np.array([-1, 1, 0, 0])
-    col_direction_vector = np.array([0, 0, 1, -1])
+        if grid.grid[new_x, new_y].visited:
+            continue
+        if grid.grid[new_x, new_y].cell_type == grid_cell_2d.OBSTACLE_CELL:
+            continue
+        cell_queue.put(grid.grid[new_x, new_y])
+        # Set the parents of the cell
+        grid.grid[new_x, new_y].parent_x = currentCell.x
+        grid.grid[new_x, new_y].parent_y = currentCell.y
+        grid.set_cell_flag(new_x, new_y, grid_cell_2d.MOVE_CELL)
+        # Going to color the parent cell before saving, and then change it back
+        previous_type = grid.grid[currentCell.x, currentCell.y].cell_type
+        grid.set_cell_flag(currentCell.x, currentCell.y, grid_cell_2d.PARENT_CELL)
+        grid.save_grid_as_image("bfs_images/bfs_8_move_fixed_grid/bfs_" + str(image_count))
+        image_count += 1
+        grid.set_cell_flag(currentCell.x, currentCell.y, previous_type)
+        grid.set_cell_flag(new_x, new_y, grid_cell_2d.VISITED_CELL)
 
-    row_moves = np.empty((0, 1), int)
-    col_moves = np.empty((0, 1), int)
-    
-    num_rows = np.size(grid, 0)
-    num_cols = np.size(grid, 1)
-    
+def move_4_directions(grid, currentCell):
+
+    global image_count
+    y_direction_vector = np.array([-1, 1, 0, 0])
+    x_direction_vector = np.array([0, 0, 1, -1])
+
     for i in range(0, 4):
-        new_row = currentRow + row_direction_vector[i]
-        new_col = currentCol + col_direction_vector[i]
-        if new_row < 0 or new_col < 0:
+        new_x = currentCell.x + x_direction_vector[i]
+        new_y = currentCell.y + y_direction_vector[i]
+        if new_x < 0 or new_y < 0:
             continue
-        if new_row >= num_rows or new_col >= num_cols:
+        if new_x >= grid.num_cols or new_y >= grid.num_rows:
             continue
 
-        if visted_flags[new_row, new_col] == grid_tools.VISITED_CELL:
+        if grid.grid[new_x, new_y].visited:
             continue
-        if grid[new_row, new_col] == grid_tools.OBSTACLE_CELL:
+        if grid.grid[new_x, new_y].cell_type == grid_cell_2d.OBSTACLE_CELL:
             continue
-        row_queue.put(new_row)
-        col_queue.put(new_col)
-        grid[new_row, new_col] = grid_tools.VISITED_CELL
-        bfs_save_grid()
-        visted_flags[new_row, new_col] = grid_tools.VISITED_CELL
+        cell_queue.put(grid.grid[new_x, new_y])
+        # Set the parents of the cell
+        grid.grid[new_x, new_y].parent_x = currentCell.x
+        grid.grid[new_x, new_y].parent_y = currentCell.y
+        grid.set_cell_flag(new_x, new_y, grid_cell_2d.MOVE_CELL)
+        # Going to color the parent cell before saving, and then change it back
+        previous_type = grid.grid[currentCell.x, currentCell.y].cell_type
+        grid.set_cell_flag(currentCell.x, currentCell.y, grid_cell_2d.PARENT_CELL)
+        grid.save_grid_as_image("bfs_images/bfs_" + str(image_count))
+        image_count += 1
+        grid.set_cell_flag(currentCell.x, currentCell.y, previous_type)
+        grid.set_cell_flag(new_x, new_y, grid_cell_2d.VISITED_CELL)
 
-def bfs_solve():
+def bfs_solve(grid):
 
-    find_start_position()
-    find_goal_position()
-    global start_row
-    global start_col
-    global goal_row
-    global goal_col
-    global image_number
-    global grid
+    goal_cell = None
+    global image_count
     # How many steps/moves did the search take
     number_of_steps_taken = 0
-    row_queue.put(start_row)
-    col_queue.put(start_col)
-    # Make sure this cell is labeled as visited
-    visted_flags[start_row, start_col] = grid_tools.VISITED_CELL
-    while not row_queue.empty():
-        row = row_queue.get()
-        col = col_queue.get()
-        print("Image number: " + str(image_number))
-        print("Current cell: " + str(row) + ", " + str(col))
-        if (row == goal_row and col == goal_col):
+    cell_queue.put(grid.start_cell)
+    # Make sure to set the cell as visited
+    grid.start_cell.mark_as_visted()
+
+    while not cell_queue.empty():
+        cell = cell_queue.get()
+        if (cell == grid.goal_cell):
+            goal_cell = cell
             break
         # If the current cell is not the start cell change the flag 
         # to change the color when plotting. The reason for not 
         # changing it when the start position is just to keep the
         # color of the start cell consistent across images
-        if row != start_row or col != start_col:
-            grid[row, col] = grid_tools.CURRENT_CELL
-        bfs_save_grid()
-        move_4_directions(row, col)
+        if cell != grid.start_cell:
+            grid.set_cell_flag(cell.x, cell.y, grid_cell_2d.CURRENT_CELL)
+
+        grid.save_grid_as_image("bfs_images/bfs_8_move_fixed_grid/bfs_" + str(image_count))
+        image_count += 1
+        move_8_directions(grid, cell)
         # Change the color back
-        if (row != start_row or col != start_col):
-            grid[row, col] = grid_tools.VISITED_CELL
+        if cell != grid.start_cell:
+            grid.set_cell_flag(cell.x, cell.y, grid_cell_2d.VISITED_CELL)
 
-def bfs_save_grid():
-    global image_number
-    grid_tools.save_grid(grid, 'bfs_images/bfs_'+str(image_number))
-    image_number = image_number + 1
+    if goal_cell != None:
+        current_cell = goal_cell
+        while current_cell.parent_x is not None:
+            grid.set_cell_flag(current_cell.parent_x, current_cell.parent_y, grid_cell_2d.MOVE_CELL)
+            current_cell = grid.grid[current_cell.parent_x, current_cell.parent_y]
 
-def find_start_position():
-    global start_row
-    global start_col
-    # Find the XY coordinate of the start
-    start = np.where(grid == grid_tools.START_CELL)
-    start_row = start[0]
-    start_col = start[1]
-    if (start_row >= 0 and start_col >=0):
-        print("Found starting position at " + str(start_row) + ", " + str(start_col))
-
-def find_goal_position():
-    global goal_row
-    global goal_col
-    # Find the XY coordinate of the goal
-    goal = np.where(grid == grid_tools.GOAL_CELL)
-    goal_row = goal[0]
-    goal_col = goal[1]
-    if (goal_row >= 0 and goal_col >=0):
-        print("Found goal position at " + str(goal_row) + ", " + str(goal_col))
+    # Update the goal cell and start cell flags so the colors change in
+    # the final output
+    grid.set_cell_flag(grid.start_cell.x, grid.start_cell.y, grid_cell_2d.START_CELL)
+    grid.set_cell_flag(grid.goal_cell.x, grid.goal_cell.y, grid_cell_2d.GOAL_CELL)
+    grid.save_grid_as_image("bfs_images/bfs_8_move_fixed_grid/bfs_final")
 
 if __name__ == "__main__":
-    grid = np.loadtxt('fixed_grid/fixed_grid.txt', dtype=int)
-    number_of_rows = np.size(grid, 0)
-    number_of_cols = np.size(grid, 1)
-    visted_flags = grid_tools.generate_grid(number_of_rows, number_of_cols)
-    bfs_solve()
+    grid = grid_2d.Grid2D()
+    grid.load_from_file('fixed_grid/fixed_grid.txt')
+    bfs_solve(grid)
