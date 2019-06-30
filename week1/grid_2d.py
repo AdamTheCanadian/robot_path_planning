@@ -63,8 +63,8 @@ class Grid2D:
                 if self.grid_as_ints[x, y] == grid_cell_2d.START_CELL:
                     self.start_cell = self.grid[x, y]
                 if self.grid_as_ints[x, y] == grid_cell_2d.GOAL_CELL:
-                    self.goal_cell = self.grid[x, y]
-    
+                    self.goal_cell = self.grid[x, y]  
+        
     def save_to_file(self, gridFile):
         pass
     
@@ -80,15 +80,34 @@ class Grid2D:
         plt.savefig(imageName + ".png", dpi=500)
         plt.close()
 
+    def set_start_cell(self, startX, startY):
+        self.start_cell = grid_cell_2d.GridCell2D(startX, startY, grid_cell_2d.START_CELL)
+        self.set_cell_flag(startX, startY, grid_cell_2d.START_CELL)
+
+    def set_goal_cell(self, goalX, goalY):
+        self.goal_cell = grid_cell_2d.GridCell2D(goalX, goalY, grid_cell_2d.GOAL_CELL)
+        self.set_cell_flag(goalX, goalY, grid_cell_2d.GOAL_CELL)
+
+    def add_obstacles(self, numberOfObstacles):
+
+        for i in range(0, numberOfObstacles):
+            x = random.randint(0, self.num_cols - 1)
+            y = random.randint(0, self.num_rows - 1)
+            # Only generate an obstacle if the cell is empty, aka
+            # not the start, goal, or already an obstacle
+            while grid[x, y] != 0:
+                x = random.randint(0, self.num_cols - 1)
+                y = random.randint(0, self.num_rows - 1)
+
+            self.set_cell_flag(x, y, grid_cell_2d.OBSTACLE_CELL)
+
     def __initialize_grid(self):
         self.grid = np.empty(self.num_rows * self.num_cols, dtype=grid_cell_2d.GridCell2D).reshape(self.num_rows, self.num_cols)
         self.grid_as_ints = np.zeros(self.num_rows * self.num_cols, dtype=int).reshape(self.num_rows, self.num_cols)
-       
-    def __grid_to_int(self):
         for x in range(0, self.num_rows):
             for y in range(0, self.num_cols):
-                self.grid_as_ints[x , y] = self.grid[x, y].cell_type
-
+                self.grid[x, y] = grid_cell_2d.GridCell2D(x, y, grid_cell_2d.EMPTY_CELL)
+                
 if __name__ == "__main__":
     grid = Grid2D()
     grid.load_from_file('fixed_grid/fixed_grid.txt')

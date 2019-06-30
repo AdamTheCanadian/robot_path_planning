@@ -64,7 +64,7 @@ def move_4_directions(grid, currentCell):
         # Going to color the parent cell before saving, and then change it back
         previous_type = grid.grid[currentCell.x, currentCell.y].cell_type
         grid.set_cell_flag(currentCell.x, currentCell.y, grid_cell_2d.PARENT_CELL)
-        grid.save_grid_as_image("bfs_images/bfs_" + str(image_count))
+        grid.save_grid_as_image("bfs_images/bfs_4_move_fixed_grid/bfs_" + str(image_count))
         image_count += 1
         grid.set_cell_flag(currentCell.x, currentCell.y, previous_type)
         grid.set_cell_flag(new_x, new_y, grid_cell_2d.VISITED_CELL)
@@ -91,9 +91,9 @@ def bfs_solve(grid):
         if cell != grid.start_cell:
             grid.set_cell_flag(cell.x, cell.y, grid_cell_2d.CURRENT_CELL)
 
-        grid.save_grid_as_image("bfs_images/bfs_8_move_fixed_grid/bfs_" + str(image_count))
+        grid.save_grid_as_image("bfs_images/bfs_4_move_fixed_grid/bfs_" + str(image_count))
         image_count += 1
-        move_8_directions(grid, cell)
+        move_4_directions(grid, cell)
         # Change the color back
         if cell != grid.start_cell:
             grid.set_cell_flag(cell.x, cell.y, grid_cell_2d.VISITED_CELL)
@@ -102,13 +102,15 @@ def bfs_solve(grid):
         current_cell = goal_cell
         while current_cell.parent_x is not None:
             grid.set_cell_flag(current_cell.parent_x, current_cell.parent_y, grid_cell_2d.MOVE_CELL)
+            grid.save_grid_as_image("bfs_images/bfs_4_move_fixed_grid/bfs_" + str(image_count))
+            image_count += 1
             current_cell = grid.grid[current_cell.parent_x, current_cell.parent_y]
 
     # Update the goal cell and start cell flags so the colors change in
     # the final output
     grid.set_cell_flag(grid.start_cell.x, grid.start_cell.y, grid_cell_2d.START_CELL)
     grid.set_cell_flag(grid.goal_cell.x, grid.goal_cell.y, grid_cell_2d.GOAL_CELL)
-    grid.save_grid_as_image("bfs_images/bfs_8_move_fixed_grid/bfs_final")
+    grid.save_grid_as_image("bfs_images/bfs_4_move_fixed_grid/bfs_final")
 
 if __name__ == "__main__":
     grid = grid_2d.Grid2D()
