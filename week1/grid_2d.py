@@ -44,29 +44,29 @@ class Grid2D:
         self.start_cell = grid_cell_2d.GridCell2D()
         self.goal_cell = grid_cell_2d.GridCell2D()
 
-    def set_cell_flag(self, x, y, flag):
-        self.grid[x, y].cell_type = flag
-        self.grid_as_ints[x, y] = flag
+    def set_cell_flag(self, row, col, flag):
+        self.grid[row, col].cell_type = flag
+        self.grid_as_ints[row, col] = flag
         if (flag == grid_cell_2d.VISITED_CELL):
-            self.grid[x, y].mark_as_visted()
+            self.grid[row, col].mark_as_visted()
 
     def load_from_file(self, gridFile):
         grid = np.loadtxt(gridFile, dtype=int)
         self.num_rows = np.size(grid, 0)
         self.num_cols = np.size(grid, 1)
         self.__initialize_grid()
-        for x in range(0, self.num_rows):
-            for y in range(0, self.num_cols):
-                self.grid[x, y] = grid_cell_2d.GridCell2D(x, y, grid[x, y])
-                self.grid_as_ints[x, y] = grid[x, y]
+        for row in range(0, self.num_rows):
+            for col in range(0, self.num_cols):
+                self.grid[row, col] = grid_cell_2d.GridCell2D(row, col, grid[row, col])
+                self.grid_as_ints[row, col] = grid[row, col]
 
-                if self.grid_as_ints[x, y] == grid_cell_2d.START_CELL:
-                    self.start_cell = self.grid[x, y]
-                if self.grid_as_ints[x, y] == grid_cell_2d.GOAL_CELL:
-                    self.goal_cell = self.grid[x, y]  
+                if self.grid_as_ints[row, col] == grid_cell_2d.START_CELL:
+                    self.start_cell = self.grid[row, col]
+                if self.grid_as_ints[row, col] == grid_cell_2d.GOAL_CELL:
+                    self.goal_cell = self.grid[row, col]  
         
     def save_to_file(self, gridFile):
-        pass
+        np.savetxt(gridFile, self.grid_as_ints, fmt="%d")
     
     def save_grid_as_image(self, imageName):
 
@@ -80,35 +80,37 @@ class Grid2D:
         plt.savefig(imageName + ".png", dpi=500)
         plt.close()
 
-    def set_start_cell(self, startX, startY):
-        self.start_cell = grid_cell_2d.GridCell2D(startX, startY, grid_cell_2d.START_CELL)
-        self.set_cell_flag(startX, startY, grid_cell_2d.START_CELL)
+    def set_start_cell(self, startRow, startCol):
+        self.set_cell_flag(startRow, startCol, grid_cell_2d.START_CELL)
+        self.start_cell = self.grid[startRow, startCol]
 
-    def set_goal_cell(self, goalX, goalY):
-        self.goal_cell = grid_cell_2d.GridCell2D(goalX, goalY, grid_cell_2d.GOAL_CELL)
-        self.set_cell_flag(goalX, goalY, grid_cell_2d.GOAL_CELL)
+    def set_goal_cell(self, goalRow, goalCol):
+        self.set_cell_flag(goalRow, goalCol, grid_cell_2d.GOAL_CELL)
+        self.goal_cell = self.grid[goalRow, goalCol]  
 
     def add_obstacles(self, numberOfObstacles):
 
         for i in range(0, numberOfObstacles):
-            x = random.randint(0, self.num_cols - 1)
-            y = random.randint(0, self.num_rows - 1)
+            col = random.randint(0, self.num_cols - 1)
+            row = random.randint(0, self.num_rows - 1)
             # Only generate an obstacle if the cell is empty, aka
             # not the start, goal, or already an obstacle
-            while grid[x, y] != 0:
-                x = random.randint(0, self.num_cols - 1)
-                y = random.randint(0, self.num_rows - 1)
+            while self.grid_as_ints[row, col] != 0:
+                col = random.randint(0, self.num_cols - 1)
+                row = random.randint(0, self.num_rows - 1)
 
-            self.set_cell_flag(x, y, grid_cell_2d.OBSTACLE_CELL)
+            self.set_cell_flag(row, col, grid_cell_2d.OBSTACLE_CELL)
 
     def __initialize_grid(self):
         self.grid = np.empty(self.num_rows * self.num_cols, dtype=grid_cell_2d.GridCell2D).reshape(self.num_rows, self.num_cols)
         self.grid_as_ints = np.zeros(self.num_rows * self.num_cols, dtype=int).reshape(self.num_rows, self.num_cols)
-        for x in range(0, self.num_rows):
-            for y in range(0, self.num_cols):
-                self.grid[x, y] = grid_cell_2d.GridCell2D(x, y, grid_cell_2d.EMPTY_CELL)
+        for row in range(0, self.num_rows):
+            for col in range(0, self.num_cols):
+                self.grid[row, col] = grid_cell_2d.GridCell2D(row, col, grid_cell_2d.EMPTY_CELL)
                 
 if __name__ == "__main__":
-    grid = Grid2D()
-    grid.load_from_file('fixed_grid/fixed_grid.txt')
-    grid.save_grid_as_image('test')
+    grid = Grid2D(20, 100)
+    #grid.load_from_file('fixed_grid/fixed_grid.txt')
+    print(grid.grid[19, 99].row)
+    grid.set_cell_flag(19, 99, grid_cell_2d.GOAL_CELL)
+    grid.save_grid_as_image("test")

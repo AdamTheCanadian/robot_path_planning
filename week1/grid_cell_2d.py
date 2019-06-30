@@ -16,17 +16,17 @@ PARENT_CELL = 7
 
 class GridCell2D:
 
-    def __init__(self, x = -1, y = -1, cellType = EMPTY_CELL):
+    def __init__(self, row = -1, col = -1, cellType = EMPTY_CELL):
 
-        # The X/Y location in the grid
-        self.x = x
-        self.y = y
+        # The row/col location in the grid
+        self.row = row
+        self.col = col
         # Flag indicated the cell has been visited
         self.visited = False 
         # Parent cell. The parent cell is the cell that was visited
         # before this cell was visited
-        self.parent_x = None
-        self.parent_y = None
+        self.parent_row = None
+        self.parent_col = None
         # Flag to indicate what type of cell it is
         self.cell_type = cellType
     
