@@ -12,23 +12,26 @@ def dijkstra_solve(grid, allowDiagonalMoves=False):
     parents = {}
     costs = {}
     frontier = queue.PriorityQueue()
+
     start_wp = grid.start_waypoint
     # Add the start waypoint to the queue and mark it as visited
-    frontier.put(start_wp, 0)
+    frontier.put((0, start_wp))
     parents[start_wp] = None
     grid[start_wp.x, start_wp.y] |= GridFlags.VISITED
     costs[start_wp] = 0
+    high_costs = {}
+    high_costs[start_wp] = 0
 
     wp = None
     while not frontier.empty():
-        wp = frontier.get()
+        wp = frontier.get()[1]
         # Flag the cell as the current cell. This is only needed for 
         # coloring/visualization
         grid[wp.x, wp.y] |= GridFlags.CURRENT
         debug_file.write("----------------------------------------------------\n")
         debug_file.write("Current Waypoint is: " + str(wp) + "\n")
         debug_file.write("Number of waypoints in queue: " + str(frontier.qsize()) + "\n")
-
+        
         if (wp.x == grid.goal_waypoint.x and wp.y == grid.goal_waypoint.y):
             debug_file.write("Found goal, exiting loop")
             break
@@ -37,9 +40,10 @@ def dijkstra_solve(grid, allowDiagonalMoves=False):
             # Need to accumulate the cost, so take the cost to get from the start
             # to the current waypoint, and the cost of moving from the current
             # waypoint to the neighbor
-            new_cost = costs[wp] + abs(wp.x - neighbor.x) + abs(wp.y - neighbor.y)
+            new_cost = costs[wp] + 100 * abs(wp.x - neighbor.x) + abs(wp.y - neighbor.y)
+            new_high_cost = high_costs[wp] + 100 * abs(wp.x - neighbor.x) + abs(wp.y - neighbor.y)
             debug_file.write("~~~~~~~~~~~" + "\n")
-            debug_file.write("Neighbor: " + str(wp) + "\n")
+            debug_file.write("Neighbor: " + str(neighbor) + "\n")
             debug_file.write("Cost calculated is: " + str(new_cost) + "\n")
             # We have a cost for this neighbor, but we need to do two checks:
             # 1. Is this a new neighbor? never been visited before?
@@ -55,9 +59,10 @@ def dijkstra_solve(grid, allowDiagonalMoves=False):
                 if neighbor in costs and new_cost < costs[neighbor]:
                     debug_file.write("Lower cost determined, previous cost was: " + str(costs[neighbor]) + "\n")
                 costs[neighbor] = new_cost
+                high_costs[neighbor] = new_high_cost
                 # Update the parent cell as well
                 parents[neighbor] = wp
-                frontier.put(neighbor, new_cost)
+                frontier.put((new_cost, neighbor))
                 # Mark the cell as visited, this is just for visualization
                 grid[neighbor.x, neighbor.y] |= GridFlags.VISITED
 
@@ -66,10 +71,17 @@ def dijkstra_solve(grid, allowDiagonalMoves=False):
 
     parent = parents[wp]
     number_of_steps = 1
+    total_cost = costs[wp]
+    total_high_cost = high_costs[wp]
     while parent is not None:
         grid[parent.x, parent.y] |= GridFlags.PATH
         parent = parents[parent]
         number_of_steps += 1
+        total_cost += costs[wp]
+        total_high_cost += high_costs[wp]
+    print("Total number of steps: " + str(number_of_steps))
+    print("Total cost: " + str(total_cost))
+    print("Total height cost: " + str(total_high_cost))
 
 def find_neighbors(waypoint, grid, allowDiagonalMoves):
     
@@ -96,7 +108,7 @@ if __name__ == "__main__":
 
     grid = Grid(gridFile = "fixed_grid/new_fixed_grid.txt")
     dijkstra_solve(grid)
-    grid.save_grid_as_image("images/dijkstra/dijkstra_4_moves")
-    grid.load_from_file("fixed_grid/new_fixed_grid.txt")
-    dijkstra_solve(grid, allowDiagonalMoves=True)
-    grid.save_grid_as_image("images/dijkstra/dijkstra_8_moves")
+    grid.save_grid_as_image("images/dijkstra/dijkstra_4_moves_x")
+    # grid.load_from_file("fixed_grid/new_fixed_grid.txt")
+    # dijkstra_solve(grid, allowDiagonalMoves=True)
+    # grid.save_grid_as_image("images/dijkstra/dijkstra_8_moves")

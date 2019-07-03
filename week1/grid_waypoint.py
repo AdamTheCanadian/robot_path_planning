@@ -25,4 +25,5 @@ class GridWayPoint:
     def __lt__(self, value):
         dist = abs(self.x) + abs(self.y)
         dist2 = abs(value.x) + abs(value.y)
-        return dist < dist2
+        # return dist < dist2
+        return True
