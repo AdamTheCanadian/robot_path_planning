@@ -5,6 +5,8 @@ from grid import *
 import queue
 from grid_waypoint import GridWayPoint
 
+debug_file = open("images/dijkstra/dijkstra_debug.txt", "w+")
+
 def dijkstra_solve(grid, allowDiagonalMoves=False):
     
     parents = {}
@@ -20,21 +22,46 @@ def dijkstra_solve(grid, allowDiagonalMoves=False):
     wp = None
     while not frontier.empty():
         wp = frontier.get()
-        print("Current wp: " + str(wp))
         # Flag the cell as the current cell. This is only needed for 
         # coloring/visualization
         grid[wp.x, wp.y] |= GridFlags.CURRENT
+        debug_file.write("----------------------------------------------------\n")
+        debug_file.write("Current Waypoint is: " + str(wp) + "\n")
+        debug_file.write("Number of waypoints in queue: " + str(frontier.qsize()) + "\n")
 
         if (wp.x == grid.goal_waypoint.x and wp.y == grid.goal_waypoint.y):
-            print("Found goal")
+            debug_file.write("Found goal, exiting loop")
             break
         neighbors = find_neighbors(wp, grid, allowDiagonalMoves)
         for neighbor in neighbors:
-            cost = abs(start_wp.x - neighbor.x) + abs(start_wp.y - neighbor.y)
-            frontier.put(neighbor, cost)
-            parents[neighbor] = wp
-        
-        # Turn off the current flag
+            # Need to accumulate the cost, so take the cost to get from the start
+            # to the current waypoint, and the cost of moving from the current
+            # waypoint to the neighbor
+            new_cost = costs[wp] + abs(wp.x - neighbor.x) + abs(wp.y - neighbor.y)
+            debug_file.write("~~~~~~~~~~~" + "\n")
+            debug_file.write("Neighbor: " + str(wp) + "\n")
+            debug_file.write("Cost calculated is: " + str(new_cost) + "\n")
+            # We have a cost for this neighbor, but we need to do two checks:
+            # 1. Is this a new neighbor? never been visited before?
+            # 2. If it has been visited before, is the new cost lower
+            # then the previous calculated cost. This would indicate we have found
+            # a "better" path to this neighbor
+            #
+            # First check, this cell is never been visited, and the 
+            # second check is checking that the new cost is lest the previously
+            # calculated cost
+            if neighbor not in costs or new_cost < costs[neighbor]:
+                # Check only for debugging, if cost is lower write it to file
+                if neighbor in costs and new_cost < costs[neighbor]:
+                    debug_file.write("Lower cost determined, previous cost was: " + str(costs[neighbor]) + "\n")
+                costs[neighbor] = new_cost
+                # Update the parent cell as well
+                parents[neighbor] = wp
+                frontier.put(neighbor, new_cost)
+                # Mark the cell as visited, this is just for visualization
+                grid[neighbor.x, neighbor.y] |= GridFlags.VISITED
+
+        # Turn off the current flag, only needed for visualization
         grid[wp.x, wp.y] &= ~GridFlags.CURRENT
 
     parent = parents[wp]
@@ -60,18 +87,16 @@ def find_neighbors(waypoint, grid, allowDiagonalMoves):
             waypoint.y + y_directions[i])
 
         if grid.is_waypoint_valid(wp):
-            if grid[wp.x, wp.y] & GridFlags.VISITED:
-                continue
             neighbors.append(wp)
-            grid[wp.x, wp.y] |= GridFlags.VISITED
     
     return neighbors
 
 if __name__ == "__main__":
 
+
     grid = Grid(gridFile = "fixed_grid/new_fixed_grid.txt")
     dijkstra_solve(grid)
-    grid.save_grid_as_image("dijkstra_4_moves")
+    grid.save_grid_as_image("images/dijkstra/dijkstra_4_moves")
     grid.load_from_file("fixed_grid/new_fixed_grid.txt")
     dijkstra_solve(grid, allowDiagonalMoves=True)
-    grid.save_grid_as_image("dijkstra_8_moves")
+    grid.save_grid_as_image("images/dijkstra/dijkstra_8_moves")
