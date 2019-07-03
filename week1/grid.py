@@ -139,9 +139,10 @@ class Grid:
     def save_grid_to_file(self, gridFile):
         np.savetxt(gridFile, self.grid, fmt="%d")
 
-    def save_grid_as_image(self, gridImageName):
+    def save_grid_as_image(self, gridImageName, titleFigure=""):
         
         plt.imshow(self.grid, cmap=cmap, norm=norm, origin="lower")
+        plt.title(titleFigure)
         ax = plt.gca()
         # ax.set_xticks(np.arange(0.5, self.size_x, 1));
         # ax.set_yticks(np.arange(0.5, self.size_y, 1));
@@ -159,6 +160,49 @@ class Grid:
             return False
         
         return True
+
+    def find_neighbors(self, waypoint, allowDiagonalMoves):
+        x_directions = [-1, 1, 0, 0]
+        y_directions = [0, 0, 1, -1]
+        
+        if allowDiagonalMoves:
+            x_directions = [-1, 1, 0, 0, -1, -1, 1, 1]
+            y_directions = [0, 0, 1, -1, -1, 1, 1, -1]
+            
+        neighbors = []
+        for i in range(0, len(x_directions)):
+            wp = grid_waypoint.GridWayPoint(
+                waypoint.x + x_directions[i],
+                waypoint.y + y_directions[i])
+
+            if self.is_waypoint_valid(wp):
+                neighbors.append(wp)
+        
+        return neighbors
+
+    def is_near_obstacle(self, waypoint, allowDiagonalMoves):
+        x_directions = [-1, 1, 0, 0]
+        y_directions = [0, 0, 1, -1]
+        
+        if allowDiagonalMoves:
+            x_directions = [-1, 1, 0, 0, -1, -1, 1, 1]
+            y_directions = [0, 0, 1, -1, -1, 1, 1, -1]
+
+        # If any next step would be an obstacle return True
+        for i in range(0, len(x_directions)):
+            wp = grid_waypoint.GridWayPoint(
+                waypoint.x + x_directions[i],
+                waypoint.y + y_directions[i]) 
+
+            if wp.x < 0 or wp.x >= self.size_x:
+                continue
+            if wp.y < 0 or wp.y >= self.size_y:
+                continue
+
+            if self.grid[wp.y, wp.x] & GridFlags.OBSTACLE:
+                return True
+        
+        return False
 
     def __getitem__(self, index):
         return self.grid[index[1], index[0]]

@@ -18,6 +18,7 @@ def dijkstra_solve(grid,
     frontier = queue.PriorityQueue()
 
     start_wp = grid.start_waypoint
+    goal_wp = grid.goal_waypoint
     # Add the start waypoint to the queue and mark it as visited
     frontier.put((0, start_wp))
     parents[start_wp] = None
@@ -39,10 +40,8 @@ def dijkstra_solve(grid,
             break
         neighbors = grid.find_neighbors(wp, allowDiagonalMoves)
         for neighbor in neighbors:
-            # Need to accumulate the cost, so take the cost to get from the start
-            # to the current waypoint, and the cost of moving from the current
-            # waypoint to the neighbor
-            new_cost = costs[wp] + weightXDistance * abs(wp.x - neighbor.x) + weightYDistance * abs(wp.y - neighbor.y)
+            # Greedy approach weights the distance to goal waypoint, closer the better
+            new_cost = weightXDistance * abs(goal_wp.x - neighbor.x) + weightYDistance * abs(goal_wp.y - neighbor.y)
             if avoidObstacles:
                 if grid.is_near_obstacle(neighbor, allowDiagonalMoves):
                     new_cost += 10000
@@ -50,39 +49,25 @@ def dijkstra_solve(grid,
             debug_file.write("~~~~~~~~~~~" + "\n")
             debug_file.write("Neighbor: " + str(neighbor) + "\n")
             debug_file.write("Cost calculated is: " + str(new_cost) + "\n")
-            # We have a cost for this neighbor, but we need to do two checks:
-            # 1. Is this a new neighbor? never been visited before?
-            # 2. If it has been visited before, is the new cost lower
-            # then the previous calculated cost. This would indicate we have found
-            # a "better" path to this neighbor
-            #
-            # First check, this cell is never been visited, and the 
-            # second check is checking that the new cost is lest the previously
-            # calculated cost
-            if neighbor not in costs or new_cost < costs[neighbor]:
-                # Check only for debugging, if cost is lower write it to file
-                if neighbor in costs and new_cost < costs[neighbor]:
-                    debug_file.write("Lower cost determined, previous cost was: " + str(costs[neighbor]) + "\n")
-                costs[neighbor] = new_cost
+            
+            # If the waypoint has not been visited add it
+            if not grid[neighbor.x, neighbor.y] & GridFlags.VISITED:
+                frontier.put((new_cost, neighbor))
+                # Mark the cell as visited
+                grid[neighbor.x, neighbor.y] |= GridFlags.VISITED
                 # Update the parent cell as well
                 parents[neighbor] = wp
-                frontier.put((new_cost, neighbor))
-                # Mark the cell as visited, this is just for visualization
-                grid[neighbor.x, neighbor.y] |= GridFlags.VISITED
 
         # Turn off the current flag, only needed for visualization
         grid[wp.x, wp.y] &= ~GridFlags.CURRENT
 
     parent = parents[wp]
     number_of_steps = 1
-    total_cost = costs[wp]
     while parent is not None:
         grid[parent.x, parent.y] |= GridFlags.PATH
         parent = parents[parent]
         number_of_steps += 1
-        total_cost += costs[wp]
     print("Total number of steps: " + str(number_of_steps))
-    print("Total cost: " + str(total_cost))
     return number_of_steps
 
 if __name__ == "__main__":
@@ -95,7 +80,7 @@ if __name__ == "__main__":
         weightXDistance=1, 
         weightYDistance=1,
         avoidObstacles=False)
-    grid.save_grid_as_image("images/dijkstra/dijkstra_4_moves",
+    grid.save_grid_as_image("images/dijkstra/dijkstra_4_moves_greedy",
         titleFigure = "4 Moves Equal weighting\n" + str(num_steps) + " Number of steps")
     # Weighting X direction
     grid.load_from_file("fixed_grid/new_fixed_grid.txt")
@@ -104,7 +89,7 @@ if __name__ == "__main__":
         weightXDistance=100, 
         weightYDistance=1,
         avoidObstacles=False)
-    grid.save_grid_as_image("images/dijkstra/dijkstra_4_moves_xweighted",
+    grid.save_grid_as_image("images/dijkstra/dijkstra_4_moves_greedy_xweighted",
         titleFigure = "4 Moves 100 X weighting\n" + str(num_steps) + " Number of steps")
     # Weighting Y direction
     grid.load_from_file("fixed_grid/new_fixed_grid.txt")
@@ -113,7 +98,7 @@ if __name__ == "__main__":
         weightXDistance=1, 
         weightYDistance=100,
         avoidObstacles=False)
-    grid.save_grid_as_image("images/dijkstra/dijkstra_4_moves_yweighted",
+    grid.save_grid_as_image("images/dijkstra/dijkstra_4_moves_greedy_yweighted",
         titleFigure = "4 Moves 100 Y weighting\n" + str(num_steps) + " Number of steps")
     # Avoid Obstacles
     grid.load_from_file("fixed_grid/new_fixed_grid.txt")
@@ -122,7 +107,7 @@ if __name__ == "__main__":
         weightXDistance=1, 
         weightYDistance=1,
         avoidObstacles=True)
-    grid.save_grid_as_image("images/dijkstra/dijkstra_4_moves_avoid_obstacles",
+    grid.save_grid_as_image("images/dijkstra/dijkstra_4_moves_greedy_avoid_obstacles",
         titleFigure = "4 Moves Equal weighting avoid obstalces\n" + str(num_steps) + " Number of steps")
 
     """ -------------------------------------
@@ -137,7 +122,7 @@ if __name__ == "__main__":
         weightXDistance=1, 
         weightYDistance=1,
         avoidObstacles=False)
-    grid.save_grid_as_image("images/dijkstra/dijkstra_8_moves",
+    grid.save_grid_as_image("images/dijkstra/dijkstra_8_moves_greedy",
         titleFigure = "8 Moves Equal weighting\n" + str(num_steps) + " Number of steps")
     # Weighting X direction
     grid.load_from_file("fixed_grid/new_fixed_grid.txt")
@@ -146,7 +131,7 @@ if __name__ == "__main__":
         weightXDistance=100, 
         weightYDistance=1,
         avoidObstacles=False)
-    grid.save_grid_as_image("images/dijkstra/dijkstra_8_moves_xweighted",
+    grid.save_grid_as_image("images/dijkstra/dijkstra_8_moves_greedy_xweighted",
         titleFigure = "8 Moves 100 X weighting\n" + str(num_steps) + " Number of steps")
     # Weighting Y direction
     grid.load_from_file("fixed_grid/new_fixed_grid.txt")
@@ -155,7 +140,7 @@ if __name__ == "__main__":
         weightXDistance=1, 
         weightYDistance=100,
         avoidObstacles=False)
-    grid.save_grid_as_image("images/dijkstra/dijkstra_8_moves_yweighted",
+    grid.save_grid_as_image("images/dijkstra/dijkstra_8_moves_greedy_yweighted",
         titleFigure = "8 Moves 100 Y weighting\n" + str(num_steps) + " Number of steps")
     # Avoid Obstacles
     grid.load_from_file("fixed_grid/new_fixed_grid.txt")
@@ -164,5 +149,5 @@ if __name__ == "__main__":
         weightXDistance=1, 
         weightYDistance=1,
         avoidObstacles=True)
-    grid.save_grid_as_image("images/dijkstra/dijkstra_8_moves_avoid_obstacles",
+    grid.save_grid_as_image("images/dijkstra/dijkstra_8_moves_greedy_avoid_obstacles",
         titleFigure = "8 Moves Equal weighting avoid obstalces\n" + str(num_steps) + " Number of steps")

@@ -64,9 +64,6 @@ def find_neighbors(waypoint, grid, allowDiagonalMoves):
 
 if __name__ == "__main__":
 
-    grid = Grid(gridFile = "fixed_grid/new_fixed_grid_.txt")
+    grid = Grid(gridFile = "fixed_grid/new_fixed_grid.txt")
     bfs_solve(grid)
-    grid.save_grid_as_image("bfs_4_moves")
-    grid.load_from_file("fixed_grid/new_fixed_grid_.txt")
-    bfs_solve(grid, allowDiagonalMoves=True)
-    grid.save_grid_as_image("bfs_8_moves")
+    grid.save_grid_as_image("images/bfs/bfs_4_moves")
