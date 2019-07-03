@@ -1,0 +1,1 @@
+This is an empty folder, used to save images during the path planning algorithms execution.

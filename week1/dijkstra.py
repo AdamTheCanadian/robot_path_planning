@@ -5,18 +5,22 @@ from grid import *
 import queue
 from grid_waypoint import GridWayPoint
 
-def bfs_solve(grid, allowDiagonalMoves=False):
+def dijkstra_solve(grid, allowDiagonalMoves=False):
     
     parents = {}
-    frontier = queue.Queue()
+    costs = {}
+    frontier = queue.PriorityQueue()
+    start_wp = grid.start_waypoint
     # Add the start waypoint to the queue and mark it as visited
-    frontier.put(grid.start_waypoint)
-    parents[grid.start_waypoint] = None
-    grid[grid.start_waypoint.x, grid.start_waypoint.y] |= GridFlags.VISITED
-    
+    frontier.put(start_wp, 0)
+    parents[start_wp] = None
+    grid[start_wp.x, start_wp.y] |= GridFlags.VISITED
+    costs[start_wp] = 0
+
     wp = None
     while not frontier.empty():
         wp = frontier.get()
+        print("Current wp: " + str(wp))
         # Flag the cell as the current cell. This is only needed for 
         # coloring/visualization
         grid[wp.x, wp.y] |= GridFlags.CURRENT
@@ -26,7 +30,8 @@ def bfs_solve(grid, allowDiagonalMoves=False):
             break
         neighbors = find_neighbors(wp, grid, allowDiagonalMoves)
         for neighbor in neighbors:
-            frontier.put(neighbor)
+            cost = abs(start_wp.x - neighbor.x) + abs(start_wp.y - neighbor.y)
+            frontier.put(neighbor, cost)
             parents[neighbor] = wp
         
         # Turn off the current flag
@@ -64,9 +69,9 @@ def find_neighbors(waypoint, grid, allowDiagonalMoves):
 
 if __name__ == "__main__":
 
-    grid = Grid(gridFile = "fixed_grid/new_fixed_grid_.txt")
-    bfs_solve(grid)
-    grid.save_grid_as_image("bfs_4_moves")
-    grid.load_from_file("fixed_grid/new_fixed_grid_.txt")
-    bfs_solve(grid, allowDiagonalMoves=True)
-    grid.save_grid_as_image("bfs_8_moves")
+    grid = Grid(gridFile = "fixed_grid/new_fixed_grid.txt")
+    dijkstra_solve(grid)
+    grid.save_grid_as_image("dijkstra_4_moves")
+    grid.load_from_file("fixed_grid/new_fixed_grid.txt")
+    dijkstra_solve(grid, allowDiagonalMoves=True)
+    grid.save_grid_as_image("dijkstra_8_moves")
